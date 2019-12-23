@@ -14,4 +14,4 @@ export default {
   logging: false,
   synchronize: false,
   retryAttempts: true,
-}
+};

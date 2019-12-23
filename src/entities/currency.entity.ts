@@ -12,6 +12,6 @@ export class Currency extends BaseEntity {
   rate: number;
 
   static toDto(currency: Currency): CurrencyDto {
-    return pick(currency, ['name', 'rate']);
+    return pick(currency, ['id', 'name', 'rate']);
   }
 }

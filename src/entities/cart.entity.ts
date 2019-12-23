@@ -8,10 +8,13 @@ export class Cart extends BaseEntity {
   @Column()
   owner: string;
 
+  @Column({ default: false })
+  isCheckedOut: boolean;
+
   @ManyToMany(type => Product, { nullable: true })
   products: Product[];
 
   static toDto(cart: Cart) {
-    return pick(cart, ['owner', 'products']);
+    return pick(cart, ['id', 'owner', 'products', 'isCheckedOut']);
   }
 }

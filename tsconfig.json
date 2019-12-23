@@ -13,6 +13,7 @@
     "paths": {
       "@abstract/*": ["src/abstractions/*"],
       "@cart/*": ["src/cart/*"],
+      "@currency/*": ["src/currency/*"],
       "@cron/*": ["src/cron/*"],
       "@decorators/*": ["src/decorators/*"],
       "@entities/*": ["src/entities/*"],

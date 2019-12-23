@@ -33,7 +33,11 @@ export class CurrencyService {
     const from = await this.getOneByName(fromName);
     const to = await this.getOneByName(toName);
 
-    const rate = from.rate * to.rate;
+    const rate = this.calculateRate(from.rate, to.rate);
     return rate;
+  }
+
+  private calculateRate(fromRate: number, toRate: number): number {
+    return parseFloat((fromRate / toRate).toFixed(4));
   }
 }

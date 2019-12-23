@@ -1,3 +1,4 @@
+import { CurrencyModule } from '@currency/currency.module';
 import { Cart } from '@entities/cart.entity';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -10,6 +11,7 @@ import { CartService } from './cart.service';
     TypeOrmModule.forFeature([
       Cart,
     ]),
+    CurrencyModule,
     ProductModule,
   ],
   controllers: [CartController],
