@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es2017",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "paths": {
+      "@abstract/*": ["src/abstractions/*"],
+      "@cart/*": ["src/cart/*"],
+      "@cron/*": ["src/cron/*"],
+      "@decorators/*": ["src/decorators/*"],
+      "@entities/*": ["src/entities/*"],
+      "@product/*": ["src/product/*"],
+      "@server/*": ["src/server/*"],
+    }
+  },
+  "exclude": ["node_modules", "dist"],
+}
