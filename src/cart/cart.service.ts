@@ -1,6 +1,7 @@
 import { Cart } from '@entities/cart.entity';
 import { Product } from '@entities/product.entity';
 import { Injectable } from '@nestjs/common';
+import { ProductService } from '@product/product.service';
 import { Repository } from 'typeorm';
 import { CartDto } from './cart.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,6 +12,7 @@ export class CartService {
 
   constructor(
     @InjectRepository(Cart) private readonly cartRepository: Repository<Cart>,
+    private readonly productService: ProductService,
   ) {}
 
   async getAll(): Promise<CartDto[]> {
@@ -73,8 +75,8 @@ export class CartService {
     cart.isCheckedOut = true;
     await this.save(cart);
 
-    // const prices = cart.products.map((product) )
-
+    const prices = this.productService.productsCheckout(cart.products, currencyName);
+    return prices;
   }
 
   private async save(cart: Cart): Promise<Cart> {

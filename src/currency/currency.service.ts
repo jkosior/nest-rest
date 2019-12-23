@@ -29,12 +29,12 @@ export class CurrencyService {
     }
   }
 
-  async fromTo(fromName: string, toName: string): Promise<number> {
+  async fromTo(fromName: string, toName: string, price: number): Promise<number> {
     const from = await this.getOneByName(fromName);
     const to = await this.getOneByName(toName);
 
     const rate = this.calculateRate(from.rate, to.rate);
-    return rate;
+    return price * rate;
   }
 
   private calculateRate(fromRate: number, toRate: number): number {
