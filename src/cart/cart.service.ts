@@ -2,18 +2,22 @@ import { Cart } from '@entities/cart.entity';
 import { Product } from '@entities/product.entity';
 import { Injectable } from '@nestjs/common';
 import { ProductService } from '@product/product.service';
-import { Repository } from 'typeorm';
+import { Repository, FindOneOptions } from 'typeorm';
 import { CartDto } from './cart.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { findIndex } from 'lodash';
+import { AbstractService } from '@server/abstracts/abstract.service';
 
 @Injectable()
-export class CartService {
+export class CartService extends AbstractService<Cart> {
 
   constructor(
     @InjectRepository(Cart) private readonly cartRepository: Repository<Cart>,
     private readonly productService: ProductService,
-  ) {}
+  ) {
+    super();
+    this.name = 'Cart';
+  }
 
   async getAll(): Promise<CartDto[]> {
     const carts = await this.cartRepository.find();
@@ -21,7 +25,11 @@ export class CartService {
   }
 
   async getOne(cartId: string): Promise<Cart> {
-    return await this.cartRepository.findOne(cartId);
+    try {
+      return await this.cartRepository.findOne(cartId);
+    } catch (err) {
+      this.throwNotFound();
+    }
   }
 
   async create(cart: CartDto): Promise<Cart> {
@@ -32,6 +40,12 @@ export class CartService {
   }
 
   async update(cartId: string, cart: CartDto ): Promise<Cart> {
+    const exists = await this.checkIfExists(cartId);
+
+    if (!exists) {
+      this.throwNotFound();
+    }
+
     await this.cartRepository.update(cartId, cart);
     const found = await this.getOne(cartId);
     return found;
@@ -73,13 +87,23 @@ export class CartService {
   async checkoutCart(cartId: string, currencyName: string = 'EUR') {
     const cart = await this.getOne(cartId);
     cart.isCheckedOut = true;
-    await this.save(cart);
 
     const prices = this.productService.productsCheckout(cart.products, currencyName);
+
+    await this.save(cart);
+
     return prices;
   }
 
   private async save(cart: Cart): Promise<Cart> {
     return await this.cartRepository.save(cart);
+  }
+
+  protected async findById(id: string) {
+    return this.cartRepository.findOne(id);
+  }
+
+  protected async findByOptions(options: FindOneOptions<Cart>) {
+    return this.cartRepository.findOne(options);
   }
 }

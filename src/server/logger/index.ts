@@ -19,4 +19,5 @@ export const logger: Logger = createLogger({
 
 export function useMorgan(app: NestExpressApplication) {
   app.use(morganInstance);
+  logger.info('Morgan started');
 }

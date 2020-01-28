@@ -11,7 +11,6 @@ export function addSwagger(app: NestExpressApplication) {
     .setTitle('Nest rest api')
     .setDescription('Test API')
     .setVersion('1.0')
-    .addTag('Cart')
     .build();
 
   const document = SwaggerModule.createDocument(app, options);
@@ -20,5 +19,6 @@ export function addSwagger(app: NestExpressApplication) {
     logger.warn('Not development environment - swagger documentation not available');
   } else {
     SwaggerModule.setup(apiPath, app, document);
+    logger.info('Swagger started');
   }
 }

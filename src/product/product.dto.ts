@@ -1,10 +1,17 @@
-export interface PriceDto {
+export class PriceDto {
   name: string;
   value: number;
 }
 
-export interface ProductDto {
-  name: string;
-  price: PriceDto[];
-  quantity: number;
+export class CreateProductDto {
+  readonly name: string;
+  readonly price: PriceDto[];
+  readonly quantity: number;
+}
+
+export class ProductDto {
+  id: string;
+  name?: string;
+  price?: PriceDto[];
+  quantity?: number;
 }

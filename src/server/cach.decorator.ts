@@ -40,7 +40,7 @@ const handleErrorLevel = (level: LogLevel, error: string) => {
 
 const errorName = (title: string, subtitle: string) => `${title} - ${subtitle}`;
 
-export const Catch = (level: LogLevel = LogLevel.Error, options: Catcher = { rethrow: false }) => {
+export const Catch = (level: LogLevel = LogLevel.Error, options: Catcher = { rethrow: true }) => {
   return catchExecutor(level, options);
 };
 
