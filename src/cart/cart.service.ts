@@ -68,7 +68,10 @@ export class CartService extends AbstractService<Cart> {
       if (productInCartIndex !== -1) {
         cart.products[productInCartIndex].quantity += prod.quantity;
       } else {
-        const priceData = await this.productService.getPriceInCurrency(prod.id, cart.currency);
+        const priceData = await this.productService.getPriceInCurrency(
+          prod.id,
+          cart.currency,
+        );
         cart.products.push({
           id: prod.id,
           quantity: prod.quantity,
@@ -111,8 +114,10 @@ export class CartService extends AbstractService<Cart> {
     if (currencyName !== cart.currency) {
       cart.currency = currencyName;
       cart.products = await Promise.all(
-        cart.products.map(async p => await this.recalculatePrice(p, currencyName),
-      ));
+        cart.products.map(
+          async p => await this.recalculatePrice(p, currencyName),
+        ),
+      );
     }
 
     await this.save(cart);
@@ -127,8 +132,14 @@ export class CartService extends AbstractService<Cart> {
     return cart.products.findIndex(product => product.id === productId);
   }
 
-  private async recalculatePrice(product: CartProduct, currencyName: string): Promise<CartProduct> {
-    const priceData = await this.productService.getPriceInCurrency(product.id, currencyName);
+  private async recalculatePrice(
+    product: CartProduct,
+    currencyName: string,
+  ): Promise<CartProduct> {
+    const priceData = await this.productService.getPriceInCurrency(
+      product.id,
+      currencyName,
+    );
     product.price = priceData.value;
     return product;
   }

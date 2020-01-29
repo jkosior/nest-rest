@@ -25,26 +25,25 @@ export class ProductController extends AbstractController {
   @Get()
   @ApiResponse({ status: 200, description: 'Get products', type: ProductDto })
   async getAll(): Promise<ProductDto[]> {
-    return (await this.productService.getAll())
-      .map(product => Product.toDto(product));
+    return (await this.productService.getAll()).map(product =>
+      Product.toDto(product),
+    );
   }
 
   @Post()
   @HttpCode(201)
   @ApiResponse({ status: 201, type: ProductDto, description: 'Create product' })
-  async createProduct(@Body() createProduct: CreateProductDto): Promise<ProductDto> {
-    return Product.toDto(
-      await this.productService.create(createProduct),
-    );
+  async createProduct(
+    @Body() createProduct: CreateProductDto,
+  ): Promise<ProductDto> {
+    return Product.toDto(await this.productService.create(createProduct));
   }
 
   @Get(':id')
   @ApiResponse({ status: 200, type: ProductDto, description: 'Get product' })
   async getOne(@Param('id') id: string): Promise<ProductDto> {
     try {
-      return Product.toDto(
-        await this.productService.getOne(id),
-      );
+      return Product.toDto(await this.productService.getOne(id));
     } catch (err) {
       this.handleError(err, 404);
     }
@@ -57,9 +56,7 @@ export class ProductController extends AbstractController {
     @Body() updateProduct: ProductDto,
   ): Promise<ProductDto> {
     try {
-      return Product.toDto(
-        await this.productService.update(id, updateProduct),
-      );
+      return Product.toDto(await this.productService.update(id, updateProduct));
     } catch (err) {
       this.handleError(err, err.status);
     }
@@ -72,9 +69,7 @@ export class ProductController extends AbstractController {
     @Body() patchProduct: Partial<ProductDto>,
   ): Promise<ProductDto> {
     try {
-      return Product.toDto(
-        await this.productService.update(id, patchProduct),
-      );
+      return Product.toDto(await this.productService.update(id, patchProduct));
     } catch (err) {
       this.handleError(err, err.status);
     }

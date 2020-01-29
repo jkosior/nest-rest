@@ -37,7 +37,11 @@ export class ProductService extends AbstractService<Product> {
 
     if (!productHasCurrency) {
       const [priceValue] = product.price;
-      const priceInCurrency = await this.currencyService.fromTo(priceValue.name, currency, priceValue.value);
+      const priceInCurrency = await this.currencyService.fromTo(
+        priceValue.name,
+        currency,
+        priceValue.value,
+      );
       const priceToSave: PriceDto = {
         name: currency,
         value: priceInCurrency,

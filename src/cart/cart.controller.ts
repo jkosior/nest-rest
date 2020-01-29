@@ -1,7 +1,15 @@
 import { CartDto, CreateCartDto, CartProduct } from '@cart/cart.dto';
 import { CartService } from '@cart/cart.service';
 import { Cart } from '@entities/cart.entity';
-import { Controller, Post, Get, Body, Patch, HttpCode, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Patch,
+  HttpCode,
+  Param,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AbstractController } from '@server/abstracts/abstract.controller';
 
@@ -15,9 +23,7 @@ export class CartController extends AbstractController {
   @Post()
   @HttpCode(201)
   async createCart(@Body() cart: CreateCartDto): Promise<CartDto> {
-    return Cart.toDto(
-      await this.cartService.create(cart),
-    );
+    return Cart.toDto(await this.cartService.create(cart));
   }
 
   @Get(':id')
@@ -30,11 +36,12 @@ export class CartController extends AbstractController {
   }
 
   @Patch(':id/add')
-  async addToCart(@Param('id') id: string, @Body('products') products: CartProduct[]): Promise<CartDto> {
+  async addToCart(
+    @Param('id') id: string,
+    @Body('products') products: CartProduct[],
+  ): Promise<CartDto> {
     try {
-      return Cart.toDto(
-        await this.cartService.addToCart(id, products),
-      )
+      return Cart.toDto(await this.cartService.addToCart(id, products));
     } catch (err) {
       this.handleError(err, 404);
     }
