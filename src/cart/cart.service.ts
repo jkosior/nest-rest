@@ -1,11 +1,9 @@
 import { Cart } from '@entities/cart.entity';
 import { Injectable } from '@nestjs/common';
-import { ProductDto } from '@product/product.dto';
 import { ProductService } from '@product/product.service';
 import { Repository, FindOneOptions } from 'typeorm';
 import { CartDto, CreateCartDto, CartProduct } from './cart.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { findIndex } from 'lodash';
 import { AbstractService } from '@server/abstracts/abstract.service';
 
 @Injectable()
@@ -119,6 +117,8 @@ export class CartService extends AbstractService<Cart> {
         ),
       );
     }
+
+    cart.totalPrice = cart.products.reduce((p1, p2) => p1 + p2.price, 0);
 
     await this.save(cart);
     return cart;

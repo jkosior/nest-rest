@@ -6,11 +6,11 @@ import {
   Post,
   Get,
   Body,
-  Patch,
   HttpCode,
   Param,
+  Query,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import { AbstractController } from '@server/abstracts/abstract.controller';
 
 @ApiTags('Cart')
@@ -22,20 +22,25 @@ export class CartController extends AbstractController {
 
   @Post()
   @HttpCode(201)
+  @ApiResponse({ status: 201, description: 'Create cart', type: CartDto })
   async createCart(@Body() cart: CreateCartDto): Promise<CartDto> {
     return Cart.toDto(await this.cartService.create(cart));
   }
 
   @Get(':id')
+  @ApiResponse({ status: 200, description: 'Get cart value', type: CartDto })
   async getCart(@Param('id') id: string): Promise<Cart> {
     try {
-      return await this.cartService.getOne(id);
+      return Cart.toDto(
+        await this.cartService.getOne(id),
+      );
     } catch (err) {
       this.handleError(err, 404);
     }
   }
 
-  @Patch(':id/add')
+  @Post(':id/add')
+  @ApiResponse({ status: 200, description: 'Add product/s to cart', type: CartDto })
   async addToCart(
     @Param('id') id: string,
     @Body('products') products: CartProduct[],
@@ -47,8 +52,24 @@ export class CartController extends AbstractController {
     }
   }
 
-  @Post('checkout')
-  checkoutCart(): Promise<void> {
-    return new Promise(null);
+  @Post(':id/remove')
+  @ApiResponse({ status: 200, description: 'Remove product from cart', type: CartDto })
+  async removeFromCart(
+    @Param('id') id: string,
+    @Body('product') product: string,
+  ): Promise<CartDto> {
+    try {
+      return Cart.toDto(await this.cartService.removeFromCart(id, product));
+    } catch (err) {
+      this.handleError(err, 404);
+    }
+  }
+
+  @Post(':id/checkout')
+  @ApiResponse({ status: 200, description: 'Checkout cart', type: CartDto })
+  async checkoutCart(@Param('id') id: string, @Query('curr') currency: string): Promise<CartDto> {
+    return Cart.toDto(
+      await this.cartService.checkoutCart(id, currency || 'EUR'),
+    );
   }
 }
