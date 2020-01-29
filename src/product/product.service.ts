@@ -19,19 +19,39 @@ export class ProductService extends AbstractService<Product> {
   }
 
   @Catch()
-  async getAll(): Promise<ProductDto[]> {
-    const products = await this.productRepository.find();
-    return products.map(product => Product.toDto(product));
+  getAll(): Promise<Product[]> {
+    return this.productRepository.find();
   }
 
   @Catch()
-  async getOne(id: string): Promise<ProductDto> {
-    const product = await this.findById(id);
-    return Product.toDto(product);
+  getOne(id: string): Promise<Product> {
+    return this.findById(id);
   }
 
   @Catch()
-  async create(toCreate: CreateProductDto): Promise<ProductDto> {
+  async getPriceInCurrency(id: string, currency: string): Promise<PriceDto> {
+    const product = await this.getOne(id);
+    const productHasCurrency = product.price.find(
+      value => value.name === currency,
+    );
+
+    if (!productHasCurrency) {
+      const [priceValue] = product.price;
+      const priceInCurrency = await this.currencyService.fromTo(priceValue.name, currency, priceValue.value);
+      const priceToSave: PriceDto = {
+        name: currency,
+        value: priceInCurrency,
+      };
+
+      product.price.push(priceToSave);
+      await this.productRepository.save(product);
+    }
+
+    return product.price.find(price => price.name === currency);
+  }
+
+  @Catch()
+  async create(toCreate: CreateProductDto): Promise<Product> {
     if (toCreate.price.length === 0) {
       throw new Error('At least one price must be set');
     }
@@ -45,14 +65,14 @@ export class ProductService extends AbstractService<Product> {
     }
 
     const product = this.productRepository.create(toCreate);
-    return this.productRepository.save(product);
+    return await this.productRepository.save(product);
   }
 
   @Catch()
   async update(
     id: string,
     toUpdate: ProductDto | Partial<ProductDto>,
-  ): Promise<ProductDto> {
+  ): Promise<Product> {
     const exists = await this.checkIfExists(id);
 
     if (!exists) {
@@ -61,7 +81,7 @@ export class ProductService extends AbstractService<Product> {
 
     await this.productRepository.update(id, toUpdate);
     const foundProduct = await this.productRepository.findOne(id);
-    return Product.toDto(foundProduct);
+    return foundProduct;
   }
 
   @Catch()
@@ -72,41 +92,6 @@ export class ProductService extends AbstractService<Product> {
     }
     const result = this.productRepository.delete(toDeleteId);
     return result;
-  }
-
-  @Catch()
-  async productsCheckout(
-    products: ProductDto[],
-    currencyName: string,
-  ): Promise<PriceDto[]> {
-    const prices: PriceDto[] = [];
-    for (const product of products) {
-      const productHasCurrency = product.price.find(
-        value => value.name === currencyName,
-      );
-
-      if (typeof productHasCurrency !== 'undefined') {
-        prices.push(productHasCurrency);
-      } else {
-        const [priceValue] = product.price;
-        const valueInCurrency: number = await this.currencyService.fromTo(
-          priceValue.name,
-          currencyName,
-          priceValue.value,
-        );
-        const priceToSave: PriceDto = {
-          name: currencyName,
-          value: valueInCurrency,
-        };
-
-        product.price.push(priceToSave);
-
-        await this.productRepository.update(product.name, product);
-        prices.push(priceToSave);
-      }
-    }
-
-    return prices;
   }
 
   @Catch()

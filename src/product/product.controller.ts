@@ -5,19 +5,15 @@ import {
   Post,
   Body,
   Delete,
-  Res,
   HttpCode,
   Put,
   Patch,
-  NotFoundException,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import { ProductDto, CreateProductDto } from '@product/product.dto';
 import { ProductService } from '@product/product.service';
-import { logger } from '@server/logger';
-import { Response } from 'express';
 import { AbstractController } from '@server/abstracts/abstract.controller';
+import { Product } from '@entities/product.entity';
 
 @ApiTags('Product')
 @Controller('product')
@@ -28,22 +24,27 @@ export class ProductController extends AbstractController {
 
   @Get()
   @ApiResponse({ status: 200, description: 'Get products', type: ProductDto })
-  getAll(): Promise<ProductDto[]> {
-    return this.productService.getAll();
+  async getAll(): Promise<ProductDto[]> {
+    return (await this.productService.getAll())
+      .map(product => Product.toDto(product));
   }
 
   @Post()
   @HttpCode(201)
   @ApiResponse({ status: 201, type: ProductDto, description: 'Create product' })
-  createProduct(@Body() createProduct: CreateProductDto): Promise<ProductDto> {
-    return this.productService.create(createProduct);
+  async createProduct(@Body() createProduct: CreateProductDto): Promise<ProductDto> {
+    return Product.toDto(
+      await this.productService.create(createProduct),
+    );
   }
 
   @Get(':id')
   @ApiResponse({ status: 200, type: ProductDto, description: 'Get product' })
   async getOne(@Param('id') id: string): Promise<ProductDto> {
     try {
-      return await this.productService.getOne(id);
+      return Product.toDto(
+        await this.productService.getOne(id),
+      );
     } catch (err) {
       this.handleError(err, 404);
     }
@@ -52,12 +53,13 @@ export class ProductController extends AbstractController {
   @Put(':id')
   @ApiResponse({ status: 200, type: ProductDto, description: 'Update product' })
   async updateOne(
-    @Res() res: Response,
     @Param('id') id: string,
     @Body() updateProduct: ProductDto,
   ): Promise<ProductDto> {
     try {
-      return await this.productService.update(id, updateProduct);
+      return Product.toDto(
+        await this.productService.update(id, updateProduct),
+      );
     } catch (err) {
       this.handleError(err, err.status);
     }
@@ -66,12 +68,13 @@ export class ProductController extends AbstractController {
   @Patch(':id')
   @ApiResponse({ status: 200, type: ProductDto, description: 'Update product' })
   async patchOne(
-    @Res() res: Response,
     @Param('id') id: string,
     @Body() patchProduct: Partial<ProductDto>,
   ): Promise<ProductDto> {
     try {
-      return await this.productService.update(id, patchProduct);
+      return Product.toDto(
+        await this.productService.update(id, patchProduct),
+      );
     } catch (err) {
       this.handleError(err, err.status);
     }

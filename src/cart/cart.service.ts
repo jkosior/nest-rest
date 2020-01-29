@@ -1,9 +1,9 @@
 import { Cart } from '@entities/cart.entity';
-import { Product } from '@entities/product.entity';
 import { Injectable } from '@nestjs/common';
+import { ProductDto } from '@product/product.dto';
 import { ProductService } from '@product/product.service';
 import { Repository, FindOneOptions } from 'typeorm';
-import { CartDto } from './cart.dto';
+import { CartDto, CreateCartDto, CartProduct } from './cart.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { findIndex } from 'lodash';
 import { AbstractService } from '@server/abstracts/abstract.service';
@@ -19,7 +19,7 @@ export class CartService extends AbstractService<Cart> {
   }
 
   async getAll(): Promise<CartDto[]> {
-    const carts = await this.cartRepository.find();
+    const carts: Cart[] = await this.cartRepository.find();
     return carts.map(cart => Cart.toDto(cart));
   }
 
@@ -31,10 +31,9 @@ export class CartService extends AbstractService<Cart> {
     }
   }
 
-  async create(cart: CartDto): Promise<Cart> {
-    const localCart = this.cartRepository.create(cart);
-    cart.products = cart.products || [];
-    const saved = await this.save(localCart);
+  async create(cart: CreateCartDto): Promise<Cart> {
+    const localCart: Cart = this.cartRepository.create(cart);
+    const saved: Cart = await this.save(localCart);
     return saved;
   }
 
@@ -50,14 +49,36 @@ export class CartService extends AbstractService<Cart> {
     return found;
   }
 
-  async addToCart(cartId: string, products: Product[]): Promise<Cart> {
+  async addToCart(cartId: string, products: CartProduct[]): Promise<Cart> {
+    const exists = await this.checkIfExists(cartId);
+
+    if (!exists) {
+      this.throwNotFound();
+    }
+
     const cart = await this.getOne(cartId);
 
     if (cart.isCheckedOut) {
       throw new Error('Cart is checked out');
     }
 
-    cart.products.push(...products);
+    for (const prod of products) {
+      const productInCartIndex = this.productInCart(cart, prod.id);
+
+      if (productInCartIndex !== -1) {
+        cart.products[productInCartIndex].quantity += prod.quantity;
+      } else {
+        const priceData = await this.productService.getPriceInCurrency(prod.id, cart.currency);
+        cart.products.push({
+          id: prod.id,
+          quantity: prod.quantity,
+          price: priceData.value,
+        });
+      }
+    }
+
+    await this.save(cart);
+
     return cart;
   }
 
@@ -72,7 +93,7 @@ export class CartService extends AbstractService<Cart> {
       throw new Error('No products in cart');
     }
 
-    const index = findIndex(cart.products, product => product.id === productId);
+    const index = this.productInCart(cart, productId);
 
     if (index === -1) {
       throw new Error('Product not in cart');
@@ -87,18 +108,29 @@ export class CartService extends AbstractService<Cart> {
     const cart = await this.getOne(cartId);
     cart.isCheckedOut = true;
 
-    const prices = this.productService.productsCheckout(
-      cart.products,
-      currencyName,
-    );
+    if (currencyName !== cart.currency) {
+      cart.currency = currencyName;
+      cart.products = await Promise.all(
+        cart.products.map(async p => await this.recalculatePrice(p, currencyName),
+      ));
+    }
 
     await this.save(cart);
-
-    return prices;
+    return cart;
   }
 
   private async save(cart: Cart): Promise<Cart> {
     return await this.cartRepository.save(cart);
+  }
+
+  private productInCart(cart: Cart, productId: string) {
+    return cart.products.findIndex(product => product.id === productId);
+  }
+
+  private async recalculatePrice(product: CartProduct, currencyName: string): Promise<CartProduct> {
+    const priceData = await this.productService.getPriceInCurrency(product.id, currencyName);
+    product.price = priceData.value;
+    return product;
   }
 
   protected async findById(id: string) {
