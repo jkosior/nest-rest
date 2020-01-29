@@ -1,5 +1,5 @@
-import { PriceDto, ProductDto } from '@product/product.dto';
-import { pick } from 'lodash';
+import { Price, ProductDto } from '@product/product.dto';
+import { omit } from 'lodash';
 import { Column, Entity } from 'typeorm';
 import { BaseEntity } from './base.entity';
 
@@ -9,12 +9,12 @@ export class Product extends BaseEntity {
   name: string;
 
   @Column('json')
-  price: PriceDto[];
+  price: Price[];
 
   @Column()
   quantity: number;
 
   static toDto(product: Product): ProductDto {
-    return pick(product, ['id', 'name', 'price', 'quantity']);
+    return omit(product, ['createdDateTime', 'lastChangedDateTime']);
   }
 }

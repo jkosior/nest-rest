@@ -9,7 +9,16 @@ import {
   Put,
   Patch,
 } from '@nestjs/common';
-import { ApiTags, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiResponse,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiInternalServerErrorResponse,
+  ApiBadRequestResponse,
+  ApiNotFoundResponse,
+  ApiBody,
+} from '@nestjs/swagger';
 import { ProductDto, CreateProductDto } from '@product/product.dto';
 import { ProductService } from '@product/product.service';
 import { AbstractController } from '@server/abstracts/abstract.controller';
@@ -23,7 +32,8 @@ export class ProductController extends AbstractController {
   }
 
   @Get()
-  @ApiResponse({ status: 200, description: 'Get products', type: ProductDto })
+  @ApiOkResponse({ description: 'Get products', type: ProductDto })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   async getAll(): Promise<ProductDto[]> {
     return (await this.productService.getAll()).map(product =>
       Product.toDto(product),
@@ -32,7 +42,9 @@ export class ProductController extends AbstractController {
 
   @Post()
   @HttpCode(201)
-  @ApiResponse({ status: 201, type: ProductDto, description: 'Create product' })
+  @ApiCreatedResponse({ type: ProductDto, description: 'Create product' })
+  @ApiBadRequestResponse({ description: 'Product already exists in database' })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   async createProduct(
     @Body() createProduct: CreateProductDto,
   ): Promise<ProductDto> {
@@ -40,17 +52,22 @@ export class ProductController extends AbstractController {
   }
 
   @Get(':id')
-  @ApiResponse({ status: 200, type: ProductDto, description: 'Get product' })
+  @ApiOkResponse({ type: ProductDto, description: 'Get product' })
+  @ApiNotFoundResponse({ description: 'Product not found in database' })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   async getOne(@Param('id') id: string): Promise<ProductDto> {
     try {
       return Product.toDto(await this.productService.getOne(id));
     } catch (err) {
-      this.handleError(err, 404);
+      this.handleError(err, err.status);
     }
   }
 
   @Put(':id')
-  @ApiResponse({ status: 200, type: ProductDto, description: 'Update product' })
+  @ApiBody({ type: ProductDto })
+  @ApiOkResponse({ type: ProductDto, description: 'Update product' })
+  @ApiNotFoundResponse({ description: 'Product not found in database' })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   async updateOne(
     @Param('id') id: string,
     @Body() updateProduct: ProductDto,
@@ -63,7 +80,10 @@ export class ProductController extends AbstractController {
   }
 
   @Patch(':id')
-  @ApiResponse({ status: 200, type: ProductDto, description: 'Update product' })
+  @ApiBody({ type: ProductDto })
+  @ApiOkResponse({ type: ProductDto, description: 'Update product' })
+  @ApiNotFoundResponse({ description: 'Product not found in database' })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   async patchOne(
     @Param('id') id: string,
     @Body() patchProduct: Partial<ProductDto>,
@@ -76,7 +96,10 @@ export class ProductController extends AbstractController {
   }
 
   @Delete(':id')
+  @HttpCode(202)
   @ApiResponse({ status: 202, description: 'Delete product', type: '' })
+  @ApiNotFoundResponse({ description: 'Product not found in database' })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   deleteOne(@Param('id') id: string) {
     return this.productService.delete(id);
   }

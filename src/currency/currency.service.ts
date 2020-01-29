@@ -46,11 +46,19 @@ export class CurrencyService {
       return null;
     }
 
+    if (fromName === 'EUR') {
+      return parseFloat((price * from.rate).toFixed(2));
+    }
+
+    if (toName === 'EUR') {
+      return parseFloat((price / from.rate).toFixed(2));
+    }
+
     const rate = this.calculateRate(from.rate, to.rate);
-    return price * rate;
+    return price / rate;
   }
 
   private calculateRate(fromRate: number, toRate: number): number {
-    return parseFloat((fromRate / toRate).toFixed(4));
+    return parseFloat((fromRate / toRate).toFixed(2));
   }
 }

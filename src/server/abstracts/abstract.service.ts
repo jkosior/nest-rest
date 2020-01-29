@@ -37,6 +37,14 @@ export abstract class AbstractService<T> {
     throw err;
   }
 
+  protected throwAlreadyExists() {
+    const err: Error & { status?: number } = new Error(
+      `${this.name} was already found in database`,
+    );
+    err.status = 400;
+    throw err;
+  }
+
   protected abstract async findById(id: string): Promise<T>;
   protected abstract async findByOptions(
     options: FindOneOptions<T>,

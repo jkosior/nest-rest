@@ -56,7 +56,7 @@ describe('[CURRENCY]', () => {
   describe('Calculate rate', () => {
     it('should calculate rates of two existing currencies', async () => {
       const response = await service.fromTo('USD', 'EUR', 1);
-      expect(response).toBeGreaterThan(1);
+      expect(response).toBeLessThan(1);
     });
 
     it('should not calculate rates not existing currencies', async () => {

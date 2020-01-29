@@ -1,4 +1,4 @@
-import { pick } from 'lodash';
+import { omit } from 'lodash';
 import { BaseEntity } from './base.entity';
 import { CartProduct } from '@cart/cart.dto';
 import { Entity, Column } from 'typeorm';
@@ -8,7 +8,7 @@ export class Cart extends BaseEntity {
   @Column()
   owner: string;
 
-  @Column()
+  @Column('double precision', { default: 0 })
   totalPrice: number;
 
   @Column({ default: false })
@@ -21,6 +21,6 @@ export class Cart extends BaseEntity {
   products: CartProduct[];
 
   static toDto(cart: Cart) {
-    return pick(cart, ['id', 'owner', 'products', 'isCheckedOut']);
+    return omit(cart, ['createdDateTime', 'lastChangedDateTime']);
   }
 }

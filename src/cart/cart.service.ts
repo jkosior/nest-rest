@@ -2,9 +2,15 @@ import { Cart } from '@entities/cart.entity';
 import { Injectable } from '@nestjs/common';
 import { ProductService } from '@product/product.service';
 import { Repository, FindOneOptions } from 'typeorm';
-import { CartDto, CreateCartDto, CartProduct } from './cart.dto';
+import {
+  CartDto,
+  CreateCartDto,
+  CartProduct,
+  AddCartProduct,
+} from './cart.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AbstractService } from '@server/abstracts/abstract.service';
+import { Catch } from '@server/cach.decorator';
 
 @Injectable()
 export class CartService extends AbstractService<Cart> {
@@ -16,11 +22,13 @@ export class CartService extends AbstractService<Cart> {
     this.name = 'Cart';
   }
 
+  @Catch()
   async getAll(): Promise<CartDto[]> {
     const carts: Cart[] = await this.cartRepository.find();
     return carts.map(cart => Cart.toDto(cart));
   }
 
+  @Catch()
   async getOne(cartId: string): Promise<Cart> {
     try {
       return await this.cartRepository.findOne(cartId);
@@ -29,12 +37,14 @@ export class CartService extends AbstractService<Cart> {
     }
   }
 
+  @Catch()
   async create(cart: CreateCartDto): Promise<Cart> {
     const localCart: Cart = this.cartRepository.create(cart);
     const saved: Cart = await this.save(localCart);
     return saved;
   }
 
+  @Catch()
   async update(cartId: string, cart: CartDto): Promise<Cart> {
     const exists = await this.checkIfExists(cartId);
 
@@ -47,7 +57,8 @@ export class CartService extends AbstractService<Cart> {
     return found;
   }
 
-  async addToCart(cartId: string, products: CartProduct[]): Promise<Cart> {
+  @Catch()
+  async addToCart(cartId: string, product: AddCartProduct): Promise<Cart> {
     const exists = await this.checkIfExists(cartId);
 
     if (!exists) {
@@ -59,30 +70,15 @@ export class CartService extends AbstractService<Cart> {
     if (cart.isCheckedOut) {
       throw new Error('Cart is checked out');
     }
+    cart.products = cart.products || [];
 
-    for (const prod of products) {
-      const productInCartIndex = this.productInCart(cart, prod.id);
-
-      if (productInCartIndex !== -1) {
-        cart.products[productInCartIndex].quantity += prod.quantity;
-      } else {
-        const priceData = await this.productService.getPriceInCurrency(
-          prod.id,
-          cart.currency,
-        );
-        cart.products.push({
-          id: prod.id,
-          quantity: prod.quantity,
-          price: priceData.value,
-        });
-      }
-    }
+    await this.handleAddToCart(cart, product);
 
     await this.save(cart);
-
     return cart;
   }
 
+  @Catch()
   async removeFromCart(cartId: string, productId: string) {
     const cart = await this.getOne(cartId);
 
@@ -100,11 +96,14 @@ export class CartService extends AbstractService<Cart> {
       throw new Error('Product not in cart');
     }
 
+    this.productService.handleProductRemovedFromCart(cart.products[index]);
+
     cart.products = cart.products.splice(index, 1);
     await this.save(cart);
     return cart;
   }
 
+  @Catch()
   async checkoutCart(cartId: string, currencyName: string = 'EUR') {
     const cart = await this.getOne(cartId);
     cart.isCheckedOut = true;
@@ -118,20 +117,64 @@ export class CartService extends AbstractService<Cart> {
       );
     }
 
-    cart.totalPrice = cart.products.reduce((p1, p2) => p1 + p2.price, 0);
+    cart.totalPrice = cart.products.reduce(
+      (p1, p2) => p1 + p2.price * p2.quantity,
+      0,
+    );
 
     await this.save(cart);
     return cart;
   }
 
+  // test use only
+  @Catch()
+  async deleteCart(cartId: string) {
+    await this.cartRepository.delete(cartId);
+  }
+
+  @Catch()
   private async save(cart: Cart): Promise<Cart> {
     return await this.cartRepository.save(cart);
   }
 
+  @Catch()
   private productInCart(cart: Cart, productId: string) {
-    return cart.products.findIndex(product => product.id === productId);
+    return cart.products === null
+      ? -1
+      : cart.products.findIndex(product => product.id === productId);
   }
 
+  @Catch()
+  private async handleAddToCart(cart: Cart, product: AddCartProduct) {
+    const isAvailable = await this.productService.checkAvailability(product);
+
+    if (!isAvailable) {
+      const err: Error & { status?: number } = new Error(
+        'Product is not available in given quantity',
+      );
+      err.status = 400;
+      throw err;
+    }
+
+    const productInCartIndex = this.productInCart(cart, product.id);
+
+    if (productInCartIndex !== -1) {
+      cart.products[productInCartIndex].quantity += product.quantity;
+    } else {
+      const priceData = await this.productService.getPriceInCurrency(
+        product.id,
+        cart.currency,
+      );
+
+      cart.products.push({
+        id: product.id,
+        quantity: product.quantity,
+        price: priceData.value,
+      });
+    }
+  }
+
+  @Catch()
   private async recalculatePrice(
     product: CartProduct,
     currencyName: string,
@@ -140,6 +183,7 @@ export class CartService extends AbstractService<Cart> {
       product.id,
       currencyName,
     );
+
     product.price = priceData.value;
     return product;
   }

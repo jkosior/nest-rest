@@ -1,11 +1,12 @@
 import { Product } from '@entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOneOptions, DeleteResult } from 'typeorm';
-import { ProductDto, PriceDto, CreateProductDto } from './product.dto';
+import { ProductDto, Price, CreateProductDto } from './product.dto';
 import { Catch } from '@server/cach.decorator';
 import { CurrencyService } from '@currency/currency.service';
 import { AbstractService } from '@server/abstracts/abstract.service';
 import { Injectable } from '@nestjs/common';
+import { CartProduct, AddCartProduct } from '@cart/cart.dto';
 
 @Injectable()
 export class ProductService extends AbstractService<Product> {
@@ -24,12 +25,16 @@ export class ProductService extends AbstractService<Product> {
   }
 
   @Catch()
-  getOne(id: string): Promise<Product> {
-    return this.findById(id);
+  async getOne(id: string): Promise<Product> {
+    try {
+      return await this.findById(id);
+    } catch (err) {
+      this.throwNotFound();
+    }
   }
 
   @Catch()
-  async getPriceInCurrency(id: string, currency: string): Promise<PriceDto> {
+  async getPriceInCurrency(id: string, currency: string): Promise<Price> {
     const product = await this.getOne(id);
     const productHasCurrency = product.price.find(
       value => value.name === currency,
@@ -42,13 +47,12 @@ export class ProductService extends AbstractService<Product> {
         currency,
         priceValue.value,
       );
-      const priceToSave: PriceDto = {
+      const priceToSave: Price = {
         name: currency,
         value: priceInCurrency,
       };
-
       product.price.push(priceToSave);
-      await this.productRepository.save(product);
+      await this.save(product);
     }
 
     return product.price.find(price => price.name === currency);
@@ -65,11 +69,11 @@ export class ProductService extends AbstractService<Product> {
     });
 
     if (exists) {
-      this.throwNotFound();
+      this.throwAlreadyExists();
     }
 
     const product = this.productRepository.create(toCreate);
-    return await this.productRepository.save(product);
+    return await this.save(product);
   }
 
   @Catch()
@@ -84,7 +88,7 @@ export class ProductService extends AbstractService<Product> {
     }
 
     await this.productRepository.update(id, toUpdate);
-    const foundProduct = await this.productRepository.findOne(id);
+    const foundProduct = await this.getOne(id);
     return foundProduct;
   }
 
@@ -96,6 +100,30 @@ export class ProductService extends AbstractService<Product> {
     }
     const result = this.productRepository.delete(toDeleteId);
     return result;
+  }
+
+  @Catch()
+  async checkAvailability(product: AddCartProduct): Promise<boolean> {
+    const foundProduct = await this.getOne(product.id);
+    if (foundProduct.quantity >= product.quantity) {
+      foundProduct.quantity -= product.quantity;
+      await this.save(foundProduct);
+      return true;
+    }
+
+    return false;
+  }
+
+  @Catch()
+  async handleProductRemovedFromCart(product: CartProduct) {
+    const foundProduct = await this.getOne(product.id);
+    foundProduct.quantity += product.quantity;
+    await this.save(foundProduct);
+  }
+
+  @Catch()
+  private async save(product: Product) {
+    return this.productRepository.save(product);
   }
 
   @Catch()

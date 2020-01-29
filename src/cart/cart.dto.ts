@@ -1,3 +1,8 @@
+export class AddCartProduct {
+  readonly id: string;
+  readonly quantity: number;
+}
+
 export class CartProduct {
   id: string;
   price: number;
@@ -6,8 +11,10 @@ export class CartProduct {
 
 export class CreateCartDto {
   readonly owner: string;
-  readonly isCheckedOut: boolean;
+  readonly currency: string;
+  readonly description?: string;
 }
+
 export class CartDto {
   id: string;
   owner: string;
@@ -15,4 +22,5 @@ export class CartDto {
   products?: CartProduct[];
   currency: string;
   totalPrice?: number;
+  description?: string;
 }

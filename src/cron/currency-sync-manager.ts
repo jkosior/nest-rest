@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { NestSchedule, Timeout, Cron } from 'nest-schedule';
 import axios from 'axios';
 import { CurrencyService } from 'src/currency/currency.service';
+import { logger } from '@server/logger';
 
 @Injectable()
 export class CurrencySyncManager extends NestSchedule {
@@ -34,5 +35,6 @@ export class CurrencySyncManager extends NestSchedule {
         });
       }
     }
+    logger.info('Currency data updated');
   }
 }
