@@ -7,9 +7,7 @@ import { CurrencyService } from 'src/currency/currency.service';
 export class CurrencySyncManager extends NestSchedule {
   private readonly apiPath: string = 'https://api.exchangeratesapi.io/latest';
 
-  constructor(
-    private readonly currencyService: CurrencyService,
-  ) {
+  constructor(private readonly currencyService: CurrencyService) {
     super();
   }
 

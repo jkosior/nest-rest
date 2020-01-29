@@ -15,9 +15,12 @@ describe('[PRODUCT]', () => {
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       imports: [
-        ConfigModule.load(resolve(__dirname, '../config', '**/!(*.d).config.{ts,js}'), {
-          modifyConfigName: name => name.replace('.config', ''),
-        }),
+        ConfigModule.load(
+          resolve(__dirname, '../config', '**/!(*.d).config.{ts,js}'),
+          {
+            modifyConfigName: name => name.replace('.config', ''),
+          },
+        ),
         TypeOrmModule.forRootAsync({
           useFactory: (config: ConfigService) => config.get('database'),
           inject: [ConfigService],
@@ -36,9 +39,9 @@ describe('[PRODUCT]', () => {
 
   describe('[GET /product]', () => {
     it('should return array of products', async () => {
-      const { body, status } = await supertest(app.getHttpServer())
-        .get('/cart');
+      const { body, status } = await supertest(app.getHttpServer()).get(
+        '/cart',
+      );
     });
   });
-
 });

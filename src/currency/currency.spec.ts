@@ -14,17 +14,19 @@ describe('[CURRENCY]', () => {
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       imports: [
-        ConfigModule.load(resolve(__dirname, '../config', '**/!(*.d).config.{ts,js}'), {
-          modifyConfigName: name => name.replace('.config', ''),
-        }),
+        ConfigModule.load(
+          resolve(__dirname, '../config', '**/!(*.d).config.{ts,js}'),
+          {
+            modifyConfigName: name => name.replace('.config', ''),
+          },
+        ),
         TypeOrmModule.forRootAsync({
           useFactory: (config: ConfigService) => config.get('database'),
           inject: [ConfigService],
         }),
         CurrencyModule,
-      ]
-    })
-    .compile();
+      ],
+    }).compile();
 
     service = module.get<CurrencyService>(CurrencyService);
   });
@@ -38,7 +40,6 @@ describe('[CURRENCY]', () => {
   });
 
   describe('Get one', () => {
-
     it('should return details of currency', async () => {
       const response = await service.getOneByName('USD');
       expect(response).toHaveProperty('id');
@@ -50,7 +51,6 @@ describe('[CURRENCY]', () => {
       const response = await service.getOneByName('AFK');
       expect(response).toBeUndefined();
     });
-
   });
 
   describe('Calculate rate', () => {
@@ -64,5 +64,4 @@ describe('[CURRENCY]', () => {
       expect(response).toBeNull();
     });
   });
-
 });

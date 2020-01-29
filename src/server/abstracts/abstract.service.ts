@@ -4,7 +4,10 @@ import { logger } from '@server/logger';
 export abstract class AbstractService<T> {
   protected name: string;
 
-  protected async checkIfExists(id: string | null, options?: FindOneOptions<T>) {
+  protected async checkIfExists(
+    id: string | null,
+    options?: FindOneOptions<T>,
+  ) {
     let element;
     try {
       if (id !== null) {
@@ -27,11 +30,15 @@ export abstract class AbstractService<T> {
   }
 
   protected throwNotFound() {
-    const err: Error & { status?: number } = new Error(`${this.name} not found in database`);
+    const err: Error & { status?: number } = new Error(
+      `${this.name} not found in database`,
+    );
     err.status = 404;
     throw err;
   }
 
   protected abstract async findById(id: string): Promise<T>;
-  protected abstract async findByOptions(options: FindOneOptions<T>): Promise<T>;
+  protected abstract async findByOptions(
+    options: FindOneOptions<T>,
+  ): Promise<T>;
 }

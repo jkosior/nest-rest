@@ -3,11 +3,7 @@ import { Module } from '@nestjs/common';
 import { CurrencySyncManager } from './currency-sync-manager';
 
 @Module({
-  imports: [
-    CurrencyModule,
-  ],
-  providers: [
-    CurrencySyncManager,
-  ],
+  imports: [CurrencyModule],
+  providers: [CurrencySyncManager],
 })
 export class CronModule {}

@@ -1,7 +1,7 @@
 import { PriceDto, ProductDto } from '@product/product.dto';
 import { pick } from 'lodash';
 import { Column, Entity } from 'typeorm';
-import { BaseEntity} from './base.entity';
+import { BaseEntity } from './base.entity';
 
 @Entity('product')
 export class Product extends BaseEntity {

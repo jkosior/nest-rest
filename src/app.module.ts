@@ -8,9 +8,12 @@ import { resolve } from 'path';
 
 @Module({
   imports: [
-    ConfigModule.load(resolve(__dirname, 'config', '**/!(*.d).config.{ts,js}'), {
-      modifyConfigName: name => name.replace('.config', ''),
-    }),
+    ConfigModule.load(
+      resolve(__dirname, 'config', '**/!(*.d).config.{ts,js}'),
+      {
+        modifyConfigName: name => name.replace('.config', ''),
+      },
+    ),
     TypeOrmModule.forRootAsync({
       useFactory: (config: ConfigService) => config.get('database'),
       inject: [ConfigService],

@@ -6,12 +6,7 @@ import { ProductService } from './product.service';
 import { CurrencyModule } from '@currency/currency.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      Product,
-    ]),
-    CurrencyModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Product]), CurrencyModule],
   controllers: [ProductController],
   providers: [ProductService],
   exports: [ProductService],

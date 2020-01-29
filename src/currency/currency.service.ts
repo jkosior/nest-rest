@@ -7,7 +7,8 @@ import { CurrencyDto } from './currency.dto';
 @Injectable()
 export class CurrencyService {
   constructor(
-    @InjectRepository(Currency) private readonly repository: Repository<Currency>,
+    @InjectRepository(Currency)
+    private readonly repository: Repository<Currency>,
   ) {}
 
   getCurrencies(): Promise<Currency[]> {
@@ -29,7 +30,11 @@ export class CurrencyService {
     }
   }
 
-  async fromTo(fromName: string, toName: string, price: number): Promise<number> {
+  async fromTo(
+    fromName: string,
+    toName: string,
+    price: number,
+  ): Promise<number> {
     const from = await this.getOneByName(fromName);
     const to = await this.getOneByName(toName);
 

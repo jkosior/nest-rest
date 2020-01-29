@@ -16,7 +16,9 @@ export function addSwagger(app: NestExpressApplication) {
   const document = SwaggerModule.createDocument(app, options);
 
   if (!isDev) {
-    logger.warn('Not development environment - swagger documentation not available');
+    logger.warn(
+      'Not development environment - swagger documentation not available',
+    );
   } else {
     SwaggerModule.setup(apiPath, app, document);
     logger.info('Swagger started');

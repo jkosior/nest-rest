@@ -10,7 +10,6 @@ import { AbstractService } from '@server/abstracts/abstract.service';
 
 @Injectable()
 export class CartService extends AbstractService<Cart> {
-
   constructor(
     @InjectRepository(Cart) private readonly cartRepository: Repository<Cart>,
     private readonly productService: ProductService,
@@ -39,7 +38,7 @@ export class CartService extends AbstractService<Cart> {
     return saved;
   }
 
-  async update(cartId: string, cart: CartDto ): Promise<Cart> {
+  async update(cartId: string, cart: CartDto): Promise<Cart> {
     const exists = await this.checkIfExists(cartId);
 
     if (!exists) {
@@ -73,7 +72,7 @@ export class CartService extends AbstractService<Cart> {
       throw new Error('No products in cart');
     }
 
-    const index = findIndex(cart.products, (product) => product.id === productId);
+    const index = findIndex(cart.products, product => product.id === productId);
 
     if (index === -1) {
       throw new Error('Product not in cart');
@@ -88,7 +87,10 @@ export class CartService extends AbstractService<Cart> {
     const cart = await this.getOne(cartId);
     cart.isCheckedOut = true;
 
-    const prices = this.productService.productsCheckout(cart.products, currencyName);
+    const prices = this.productService.productsCheckout(
+      cart.products,
+      currencyName,
+    );
 
     await this.save(cart);
 

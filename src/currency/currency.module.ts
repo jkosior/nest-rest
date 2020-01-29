@@ -4,11 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CurrencyService } from './currency.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      Currency,
-    ]),
-  ],
+  imports: [TypeOrmModule.forFeature([Currency])],
   providers: [CurrencyService],
   exports: [CurrencyService],
 })

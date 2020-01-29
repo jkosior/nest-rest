@@ -10,7 +10,8 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class ProductService extends AbstractService<Product> {
   constructor(
-    @InjectRepository(Product) private readonly productRepository: Repository<Product>,
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
     private readonly currencyService: CurrencyService,
   ) {
     super();
@@ -35,7 +36,9 @@ export class ProductService extends AbstractService<Product> {
       throw new Error('At least one price must be set');
     }
 
-    const exists = await this.checkIfExists(null, { where: { name: toCreate.name }});
+    const exists = await this.checkIfExists(null, {
+      where: { name: toCreate.name },
+    });
 
     if (exists) {
       this.throwNotFound();
@@ -46,7 +49,10 @@ export class ProductService extends AbstractService<Product> {
   }
 
   @Catch()
-  async update(id: string, toUpdate: ProductDto | Partial<ProductDto>): Promise<ProductDto> {
+  async update(
+    id: string,
+    toUpdate: ProductDto | Partial<ProductDto>,
+  ): Promise<ProductDto> {
     const exists = await this.checkIfExists(id);
 
     if (!exists) {
@@ -69,16 +75,25 @@ export class ProductService extends AbstractService<Product> {
   }
 
   @Catch()
-  async productsCheckout(products: ProductDto[], currencyName: string): Promise<PriceDto[]> {
+  async productsCheckout(
+    products: ProductDto[],
+    currencyName: string,
+  ): Promise<PriceDto[]> {
     const prices: PriceDto[] = [];
     for (const product of products) {
-      const productHasCurrency = product.price.find((value) => value.name === currencyName);
+      const productHasCurrency = product.price.find(
+        value => value.name === currencyName,
+      );
 
       if (typeof productHasCurrency !== 'undefined') {
         prices.push(productHasCurrency);
       } else {
         const [priceValue] = product.price;
-        const valueInCurrency: number = await this.currencyService.fromTo(priceValue.name, currencyName, priceValue.value);
+        const valueInCurrency: number = await this.currencyService.fromTo(
+          priceValue.name,
+          currencyName,
+          priceValue.value,
+        );
         const priceToSave: PriceDto = {
           name: currencyName,
           value: valueInCurrency,
@@ -95,7 +110,9 @@ export class ProductService extends AbstractService<Product> {
   }
 
   @Catch()
-  protected async findByOptions(options: FindOneOptions<Product>): Promise<Product> {
+  protected async findByOptions(
+    options: FindOneOptions<Product>,
+  ): Promise<Product> {
     return this.productRepository.findOne(options);
   }
 
