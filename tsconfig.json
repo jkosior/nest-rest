@@ -18,8 +18,8 @@
       "@decorators/*": ["src/decorators/*"],
       "@entities/*": ["src/entities/*"],
       "@product/*": ["src/product/*"],
-      "@server/*": ["src/server/*"],
+      "@server/*": ["src/server/*"]
     }
   },
-  "exclude": ["node_modules", "dist"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, Config, ConfigService } from 'nestjs-config';
+import { ConfigModule, ConfigService } from 'nestjs-config';
 import { CartModule } from './cart/cart.module';
 import { ProductModule } from './product/product.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { CronModule } from '@cron/cron.module';
 import { resolve } from 'path';
-import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [

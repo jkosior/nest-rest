@@ -33,6 +33,14 @@ export class CurrencyService {
     const from = await this.getOneByName(fromName);
     const to = await this.getOneByName(toName);
 
+    if (typeof from === 'undefined') {
+      return null;
+    }
+
+    if (typeof to === 'undefined') {
+      return null;
+    }
+
     const rate = this.calculateRate(from.rate, to.rate);
     return price * rate;
   }
